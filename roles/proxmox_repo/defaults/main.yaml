@@ -1,0 +1,9 @@
+---
+proxmox_repo_key_url: "https://enterprise.proxmox.com/debian/proxmox-archive-keyring-{{ ansible_distribution_release }}.gpg"
+proxmox_repo_keyring: /etc/apt/keyrings/proxmox-archive-keyring.gpg
+proxmox_repo_uri: http://download.proxmox.com/debian/pve
+proxmox_repo_suite: "{{ ansible_distribution_release }}"
+proxmox_repo_component: pve-no-subscription
+proxmox_repo_package: proxmox-auto-install-assistant
+proxmox_repo_preferences_path: /etc/apt/preferences.d/proxmox.pref
+proxmox_repo_pin_origin: download.proxmox.com

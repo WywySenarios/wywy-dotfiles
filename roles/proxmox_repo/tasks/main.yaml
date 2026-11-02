@@ -1,0 +1,84 @@
+---
+- name: Ensure python3-debian is present
+  ansible.builtin.apt:
+    name: python3-debian
+    state: present
+    update_cache: true
+
+- name: Ensure the apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the Proxmox apt keyring
+  ansible.builtin.get_url:
+    url: "{{ proxmox_repo_key_url }}"
+    dest: "{{ proxmox_repo_keyring }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add the Proxmox VE apt repository
+  ansible.builtin.deb822_repository:
+    name: proxmox
+    types:
+      - deb
+    uris:
+      - "{{ proxmox_repo_uri }}"
+    suites:
+      - "{{ proxmox_repo_suite }}"
+    components:
+      - "{{ proxmox_repo_component }}"
+    signed_by: "{{ proxmox_repo_keyring }}"
+    state: present
+
+- name: Write the Proxmox apt preferences
+  ansible.builtin.copy:
+    dest: "{{ proxmox_repo_preferences_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      Explanation: These tools should only be provided by Proxmox.
+      Package: {{ proxmox_repo_package }}
+      Pin: origin {{ proxmox_repo_pin_origin }}
+      Pin-Priority: 500
+
+      Explanation: Everything else Proxmox ships never outranks an installed package.
+      Package: *
+      Pin: origin {{ proxmox_repo_pin_origin }}
+      Pin-Priority: 99
+
+      Explanation: A Proxmox kernel or PVE meta-package must never reach the operator machine.
+      Package: pve-kernel-* proxmox-kernel-* proxmox-default-kernel proxmox-ve pve-manager
+      Pin: origin {{ proxmox_repo_pin_origin }}
+      Pin-Priority: -1
+
+- name: Install proxmox-auto-install-assistant
+  ansible.builtin.apt:
+    name: "{{ proxmox_repo_package }}"
+    state: present
+    install_recommends: false
+    update_cache: true
+
+- name: Read the Proxmox kernel candidate
+  ansible.builtin.command:
+    argv:
+      - apt-cache
+      - policy
+      - proxmox-default-kernel
+  register: proxmox_repo_kernel_policy
+  changed_when: false
+  check_mode: false
+
+- name: Require the Proxmox kernel to have no candidate
+  ansible.builtin.assert:
+    that:
+      - "proxmox_repo_kernel_policy.stdout is not search('Candidate: [0-9]')"
+    fail_msg: >-
+      proxmox-default-kernel still has an apt candidate, so the preferences in
+      {{ proxmox_repo_preferences_path }} did not take effect and an upgrade
+      could install a Proxmox kernel. Fix the pin before continuing.
