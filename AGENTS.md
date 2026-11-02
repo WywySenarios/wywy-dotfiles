@@ -15,7 +15,6 @@ Every playbook run needs `--ask-become-pass`. Do not assume passwordless escalat
 ## Toolchain
 
 - The Ansible toolchain is pinned in `pyproject.toml` and `uv.lock`. Change the pins and regenerate the lock in the same commit.
-- `uv` is a prerequisite. `scripts/install.sh` provisions the toolchain.
 - Playbooks use fully qualified module names (`ansible.builtin.apt`, not `apt`).
 - Packages and binaries are managed by roles under `roles/`. Do not add a `shell`, `command`, or `raw` task when a module covers the job.
 - The Proxmox VE source is preference-limited by `roles/proxmox_repo`. Do not loosen `/etc/apt/preferences.d/proxmox.pref`: the `-1` pin is the only thing keeping PVE kernels and meta-packages off this machine.
@@ -23,3 +22,4 @@ Every playbook run needs `--ask-become-pass`. Do not assume passwordless escalat
 ## Testing
 
 Run suites through `scripts/tests/**`. If no suite exists, report that instead of inventing one.
+Never commit with `--no-verify`.

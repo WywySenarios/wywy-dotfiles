@@ -21,13 +21,21 @@ scripts/install.sh
 
 ## Usage
 
-Apply the playbook to this machine:
+Preview the changes the playbook would make:
+
+```bash
+uv run ansible-playbook playbooks/site.yaml --check --diff --ask-become-pass
+```
+
+Apply them:
 
 ```bash
 uv run ansible-playbook playbooks/site.yaml --ask-become-pass
 ```
 
-Pins and checksums live in `roles/packages/defaults/main.yaml` and `roles/binaries/defaults/main.yaml`.
+## Configuration
+
+The required package list lives in `roles/packages/defaults/main.yaml`. Pinned binary versions and their SHA-256 checksums live in `roles/binaries/defaults/main.yaml`.
 
 ## Status
 
