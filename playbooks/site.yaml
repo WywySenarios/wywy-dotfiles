@@ -9,5 +9,6 @@
           - ansible_architecture == "x86_64"
         fail_msg: "Unsupported architecture {{ ansible_architecture }}; this playbook targets x86_64 only."
   roles:
+    - docker_repo
     - packages
     - binaries

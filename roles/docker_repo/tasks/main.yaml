@@ -1,0 +1,37 @@
+---
+- name: Ensure python3-debian is present
+  ansible.builtin.apt:
+    name: python3-debian
+    state: present
+    update_cache: true
+
+- name: Ensure the apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the Docker apt key
+  ansible.builtin.get_url:
+    url: "{{ docker_repo_key_url }}"
+    dest: "{{ docker_repo_keyring }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add the Docker apt repository
+  ansible.builtin.deb822_repository:
+    name: docker
+    types:
+      - deb
+    uris:
+      - "{{ docker_repo_uri }}"
+    suites:
+      - "{{ docker_repo_suite }}"
+    components:
+      - "{{ docker_repo_component }}"
+    architectures: "{{ docker_repo_architectures }}"
+    signed_by: "{{ docker_repo_keyring }}"
+    state: present

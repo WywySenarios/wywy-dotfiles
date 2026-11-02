@@ -1,0 +1,8 @@
+---
+docker_repo_keyring: /etc/apt/keyrings/docker.asc
+docker_repo_key_url: https://download.docker.com/linux/debian/gpg
+docker_repo_uri: https://download.docker.com/linux/debian
+docker_repo_suite: "{{ ansible_distribution_release }}"
+docker_repo_component: stable
+docker_repo_architectures:
+  - amd64
