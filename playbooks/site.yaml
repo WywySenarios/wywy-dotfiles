@@ -1,0 +1,13 @@
+---
+- name: Provision the operator machine
+  hosts: localhost
+  become: true
+  pre_tasks:
+    - name: Check the target architecture
+      ansible.builtin.assert:
+        that:
+          - ansible_architecture == "x86_64"
+        fail_msg: "Unsupported architecture {{ ansible_architecture }}; this playbook targets x86_64 only."
+  roles:
+    - packages
+    - binaries

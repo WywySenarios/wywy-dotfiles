@@ -1,0 +1,6 @@
+---
+- name: Ensure required packages are present
+  ansible.builtin.apt:
+    name: "{{ packages_required }}"
+    state: present
+    update_cache: true

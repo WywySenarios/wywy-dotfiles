@@ -1,0 +1,34 @@
+---
+- name: Install sops
+  ansible.builtin.get_url:
+    url: "https://github.com/getsops/sops/releases/download/v{{ binaries_sops_version }}/sops-v{{ binaries_sops_version }}.linux.amd64"
+    dest: /usr/local/bin/sops
+    checksum: "sha256:{{ binaries_sops_sha256 }}"
+    mode: "0755"
+
+- name: Create the Helm directory
+  ansible.builtin.file:
+    path: /usr/local/lib/helm
+    state: directory
+    mode: "0755"
+
+- name: Download the Helm release
+  ansible.builtin.get_url:
+    url: "https://get.helm.sh/helm-v{{ binaries_helm_version }}-linux-amd64.tar.gz"
+    dest: /usr/local/lib/helm/helm.tar.gz
+    checksum: "sha256:{{ binaries_helm_sha256 }}"
+    mode: "0644"
+
+- name: Extract the Helm release
+  ansible.builtin.unarchive:
+    src: /usr/local/lib/helm/helm.tar.gz
+    dest: /usr/local/lib/helm
+    remote_src: true
+    creates: /usr/local/lib/helm/linux-amd64/helm
+
+- name: Link the Helm binary
+  ansible.builtin.file:
+    path: /usr/local/bin/helm
+    src: /usr/local/lib/helm/linux-amd64/helm
+    state: link
+    force: true

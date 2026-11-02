@@ -1,0 +1,7 @@
+---
+binaries_sops_version: "3.13.3"
+binaries_helm_version: "3.21.3"
+
+# SHA-256 of each downloaded artifact.
+binaries_sops_sha256: e5bec3346a873ae91d871550f3e698c1aad962aff462a080e40f25fde17fef6b
+binaries_helm_sha256: 15e041a93a590dce8100f39385cd98c84a765c9e36aeeb9e2dc6ff9e4769e2e0
