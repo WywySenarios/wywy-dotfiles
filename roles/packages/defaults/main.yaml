@@ -1,5 +1,6 @@
 ---
 packages_required:
+  - apache2-utils
   - curl
   - docker-buildx-plugin
   - docker-ce
