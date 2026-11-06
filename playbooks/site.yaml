@@ -11,5 +11,6 @@
   roles:
     - docker_repo
     - packages
+    - docker_group
     - proxmox_repo
     - binaries

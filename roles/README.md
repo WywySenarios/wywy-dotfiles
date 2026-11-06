@@ -6,6 +6,7 @@
 | -------------- | ----------------------------------------- |
 | `docker_repo`  | Docker apt repository and signing key.    |
 | `packages`     | apt packages                              |
+| `docker_group` | Operator membership in the docker group.  |
 | `proxmox_repo` | Proxmox apt repository, key, and apt pin. |
 | `binaries`     | Pinned binaries                           |
 

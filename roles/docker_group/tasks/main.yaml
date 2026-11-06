@@ -1,0 +1,12 @@
+---
+- name: Ensure the Docker group exists
+  ansible.builtin.group:
+    name: "{{ docker_group_name }}"
+    state: present
+
+- name: Add the operator to the Docker group
+  ansible.builtin.user:
+    name: "{{ docker_group_user }}"
+    groups:
+      - "{{ docker_group_name }}"
+    append: true
