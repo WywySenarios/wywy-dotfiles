@@ -8,4 +8,5 @@ packages_required:
   - docker-ce-cli
   - kubectl
   - openssl
+  - vim
   - xorriso
