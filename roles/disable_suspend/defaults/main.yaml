@@ -1,0 +1,8 @@
+---
+disable_suspend_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
+
+disable_suspend_settings:
+  - key: /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type
+    value: "'nothing'"
+  - key: /org/gnome/settings-daemon/plugins/power/sleep-inactive-battery-type
+    value: "'nothing'"

@@ -1,0 +1,30 @@
+---
+- name: Require a non-root operator account
+  ansible.builtin.assert:
+    that:
+      - disable_suspend_user not in ['', 'root']
+    fail_msg: >-
+      Refusing to write GNOME power settings for "{{ disable_suspend_user }}".
+      Run the playbook as the operator user, or set disable_suspend_user.
+    quiet: true
+
+- name: Ensure the dconf dependencies are present
+  ansible.builtin.apt:
+    name:
+      - dconf-cli
+      - python3-gi
+      - python3-psutil
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Disable suspend
+  community.general.dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  loop: "{{ disable_suspend_settings }}"
+  loop_control:
+    label: "{{ item.key }}"
+  become: true
+  become_user: "{{ disable_suspend_user }}"

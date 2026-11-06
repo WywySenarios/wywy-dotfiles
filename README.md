@@ -35,7 +35,7 @@ uv run ansible-playbook playbooks/site.yaml --ask-become-pass
 
 ## Configuration
 
-The required package list lives in `roles/packages/defaults/main.yaml`. Pinned binary versions and their SHA-256 checksums live in `roles/binaries/defaults/main.yaml`.
+Configuration is located inside role defaults (`roles/<role_name>/defaults/main.yaml`).
 
 ## Status
 

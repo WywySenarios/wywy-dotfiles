@@ -26,10 +26,16 @@ esac
 if "$DRY_RUN"; then
 	header "Plan (dry run)"
 	info "uv sync --directory $REPO_ROOT --locked"
+	info "uv run --directory $REPO_ROOT ansible-galaxy collection install -r $REPO_ROOT/requirements.yaml -p $REPO_ROOT/.ansible/collections"
 	exit 0
 fi
 
 header "Syncing the Ansible toolchain ($REPO_ROOT)"
 uv sync --directory "$REPO_ROOT" --locked
+
+header "Installing Ansible collections ($REPO_ROOT)"
+uv run --directory "$REPO_ROOT" ansible-galaxy collection install \
+	-r "$REPO_ROOT/requirements.yaml" \
+	-p "$REPO_ROOT/.ansible/collections"
 
 info "Ansible toolchain ready ($REPO_ROOT/.venv)"
