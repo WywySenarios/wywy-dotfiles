@@ -6,5 +6,6 @@ packages_required:
   - docker-buildx-plugin
   - docker-ce
   - docker-ce-cli
+  - kubectl
   - openssl
   - xorriso
