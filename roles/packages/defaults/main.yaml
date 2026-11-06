@@ -1,5 +1,6 @@
 ---
 packages_required:
+  - age
   - apache2-utils
   - curl
   - docker-buildx-plugin
