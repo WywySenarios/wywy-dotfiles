@@ -1,7 +1,23 @@
 ---
-binaries_sops_version: "3.13.3"
-binaries_helm_version: "3.21.3"
+binaries_user_home: "{{ ansible_env.HOME }}"
+binaries_opt_root: "{{ binaries_user_home }}/.local/opt"
 
-# SHA-256 of each downloaded artifact.
+binaries_sops_version: "3.13.3"
 binaries_sops_sha256: e5bec3346a873ae91d871550f3e698c1aad962aff462a080e40f25fde17fef6b
+binaries_sops_url: "https://github.com/getsops/sops/releases/download/v{{ binaries_sops_version }}/sops-v{{ binaries_sops_version }}.linux.amd64"
+
+binaries_helm_version: "3.21.3"
 binaries_helm_sha256: 15e041a93a590dce8100f39385cd98c84a765c9e36aeeb9e2dc6ff9e4769e2e0
+binaries_helm_url: "https://get.helm.sh/helm-v{{ binaries_helm_version }}-linux-amd64.tar.gz"
+
+binaries_kubectl_version: "1.37.2"
+binaries_kubectl_sha256: c04487523e7aa7d1493f7808174c899db93d7a9cf57531420cd76b9bd415f8f4
+binaries_kubectl_url: "https://dl.k8s.io/release/v{{ binaries_kubectl_version }}/bin/linux/amd64/kubectl"
+
+binaries_path_links:
+  - name: sops
+    src: "{{ binaries_opt_root }}/sops/sops"
+  - name: helm
+    src: "{{ binaries_opt_root }}/helm/helm"
+  - name: kubectl
+    src: "{{ binaries_opt_root }}/kubectl/kubectl"

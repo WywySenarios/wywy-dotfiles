@@ -1,4 +1,4 @@
 ---
 profile: production
 exclude_paths:
-  - ansible/.venv
+  - .venv

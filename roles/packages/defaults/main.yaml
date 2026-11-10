@@ -1,4 +1,6 @@
 ---
+# CONVENTION EXCEPTION: exact apt pins would block Debian security updates and the Docker and Proxmox repositories track upstream releases.
+# The operator machine follows its configured apt suites.
 packages_required:
   - age
   - apache2-utils
@@ -6,7 +8,24 @@ packages_required:
   - docker-buildx-plugin
   - docker-ce
   - docker-ce-cli
-  - kubectl
   - openssl
   - vim
   - xorriso
+
+packages_path_links:
+  - name: age
+    src: /usr/bin/age
+  - name: age-keygen
+    src: /usr/bin/age-keygen
+  - name: curl
+    src: /usr/bin/curl
+  - name: htpasswd
+    src: /usr/bin/htpasswd
+  - name: openssl
+    src: /usr/bin/openssl
+  - name: vim
+    src: /usr/bin/vim
+  - name: xorriso
+    src: /usr/bin/xorriso
+  - name: docker
+    src: /usr/bin/docker

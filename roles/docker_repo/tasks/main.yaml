@@ -1,9 +1,12 @@
 ---
+# CONVENTION EXCEPTION: exact apt pins would block Debian security updates.
 - name: Ensure python3-debian is present
   ansible.builtin.apt:
     name: python3-debian
     state: present
     update_cache: true
+    cache_valid_time: 3600
+  become: true
 
 - name: Ensure the apt keyrings directory exists
   ansible.builtin.file:
@@ -12,14 +15,17 @@
     owner: root
     group: root
     mode: "0755"
+  become: true
 
 - name: Install the Docker apt key
   ansible.builtin.get_url:
     url: "{{ docker_repo_key_url }}"
     dest: "{{ docker_repo_keyring }}"
+    checksum: "sha256:{{ docker_repo_key_sha256 }}"
     owner: root
     group: root
     mode: "0644"
+  become: true
 
 - name: Add the Docker apt repository
   ansible.builtin.deb822_repository:
@@ -35,3 +41,4 @@
     architectures: "{{ docker_repo_architectures }}"
     signed_by: "{{ docker_repo_keyring }}"
     state: present
+  become: true

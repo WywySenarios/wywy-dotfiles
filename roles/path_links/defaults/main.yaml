@@ -1,0 +1,3 @@
+---
+path_links_bin_dir: "{{ ansible_env.HOME }}/.local/bin"
+path_links_links: []

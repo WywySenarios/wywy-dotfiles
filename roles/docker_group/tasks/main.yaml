@@ -1,8 +1,17 @@
 ---
+- name: Require a non-root operator account
+  ansible.builtin.assert:
+    that:
+      - docker_group_user not in ['', 'root']
+    fail_msg: >-
+      Refusing to add "{{ docker_group_user }}" to the Docker group. Run the playbook as the operator user or set docker_group_user.
+    quiet: true
+
 - name: Ensure the Docker group exists
   ansible.builtin.group:
     name: "{{ docker_group_name }}"
     state: present
+  become: true
 
 - name: Add the operator to the Docker group
   ansible.builtin.user:
@@ -10,3 +19,4 @@
     groups:
       - "{{ docker_group_name }}"
     append: true
+  become: true

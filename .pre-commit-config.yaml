@@ -2,11 +2,18 @@
 #
 # Install once per clone:  pre-commit install
 # Run against everything:  pre-commit run --all-files
+default_stages: [pre-commit]
+
 repos:
   - repo: https://github.com/betterleaks/betterleaks
     rev: v1.9.0
     hooks:
       - id: betterleaks
+      - id: betterleaks
+        alias: betterleaks-push
+        name: Detect hardcoded secrets (full history)
+        entry: betterleaks git --redact --no-banner --verbose
+        stages: [pre-push]
 
   - repo: local
     hooks:
@@ -21,7 +28,7 @@ repos:
         entry: scripts/tests/ansible/lint.sh
         language: system
         pass_filenames: false
-        files: &ansible-files ^(ansible\.cfg|\.ansible-lint|inventory/|playbooks/|roles/|pyproject\.toml|uv\.lock|scripts/tests/ansible/)
+        files: &ansible-files ^(ansible\.cfg|\.ansible-lint|inventory/|playbooks/|roles/|requirements\.yaml|pyproject\.toml|uv\.lock|scripts/(install|uninstall|tests/ansible)/)
       - id: ansible-syntax
         name: ansible-playbook --syntax-check
         entry: scripts/tests/ansible/syntax.sh

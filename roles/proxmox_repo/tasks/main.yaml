@@ -1,9 +1,12 @@
 ---
+# CONVENTION EXCEPTION: exact apt pins would block Debian security updates.
 - name: Ensure python3-debian is present
   ansible.builtin.apt:
     name: python3-debian
     state: present
     update_cache: true
+    cache_valid_time: 3600
+  become: true
 
 - name: Ensure the apt keyrings directory exists
   ansible.builtin.file:
@@ -12,14 +15,17 @@
     owner: root
     group: root
     mode: "0755"
+  become: true
 
 - name: Install the Proxmox apt keyring
   ansible.builtin.get_url:
     url: "{{ proxmox_repo_key_url }}"
     dest: "{{ proxmox_repo_keyring }}"
+    checksum: "sha256:{{ proxmox_repo_key_sha256 }}"
     owner: root
     group: root
     mode: "0644"
+  become: true
 
 - name: Add the Proxmox VE apt repository
   ansible.builtin.deb822_repository:
@@ -34,6 +40,7 @@
       - "{{ proxmox_repo_component }}"
     signed_by: "{{ proxmox_repo_keyring }}"
     state: present
+  become: true
 
 - name: Write the Proxmox apt preferences
   ansible.builtin.copy:
@@ -56,13 +63,17 @@
       Package: pve-kernel-* proxmox-kernel-* proxmox-default-kernel proxmox-ve pve-manager
       Pin: origin {{ proxmox_repo_pin_origin }}
       Pin-Priority: -1
+  become: true
 
+# CONVENTION EXCEPTION: exact apt pins would block upstream security updates.
 - name: Install proxmox-auto-install-assistant
   ansible.builtin.apt:
     name: "{{ proxmox_repo_package }}"
     state: present
     install_recommends: false
     update_cache: true
+    cache_valid_time: 3600
+  become: true
 
 - name: Read the Proxmox kernel candidate
   ansible.builtin.command:

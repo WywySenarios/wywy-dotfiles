@@ -2,40 +2,42 @@
 
 This repo is part of the Wywy repo line and is subject to Wywy conventions.
 
-The control repo (Wywy-Website-Control)'s operator machine configuration.
+Provisions the Wywy operator machine: apt packages, the Docker and Proxmox repositories, the pinned userland binaries (sops, helm, kubectl), and the GNOME suspend settings.
 
 ## Prerequisites
 
-- AMD64 Debian (YMMV with Debian-based distributions)
-- `sudo`, with a password
-- `git`
-- `uv`
+- AMD64 Debian 13 (trixie). The playbook asserts the distribution, release, and architecture.
+- `sudo`, with a password.
+- `git`.
+- `uv`.
+- `~/.local/bin` on `PATH`. The shared shell environment and the `uv` installer both add it.
 
-## Setup
+## Install
 
-Install the pinned Ansible toolchain:
+Clone the repo to the dotfiles location and bootstrap the pinned Ansible toolchain:
 
 ```bash
+git clone --recurse-submodules https://github.com/WywySenarios/wywy-dotfiles.git ~/.config/dotfiles/repos/wywy-dotfiles
+cd ~/.config/dotfiles/repos/wywy-dotfiles
 scripts/install.sh
 ```
 
-## Usage
-
-Preview the changes the playbook would make:
+Preview the playbook, then apply it:
 
 ```bash
 uv run ansible-playbook playbooks/site.yaml --check --diff --ask-become-pass
+uv run ansible-playbook playbooks/site.yaml --ask-become-pass
 ```
 
-Apply them:
+Verify the provisioned tools:
 
 ```bash
-uv run ansible-playbook playbooks/site.yaml --ask-become-pass
+scripts/verify.sh
 ```
 
 ## Configuration
 
-Configuration is located inside role defaults (`roles/<role_name>/defaults/main.yaml`).
+Role defaults live in `roles/<role_name>/defaults/main.yaml`.
 
 ## Status
 

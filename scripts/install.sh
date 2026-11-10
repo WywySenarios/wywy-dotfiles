@@ -1,41 +1,37 @@
 #!/bin/bash
 #
-# Idempotent Ansible toolchain installation.
-#
-# Prerequisite: uv.
+# Install the pinned Ansible toolchain for wywy-dotfiles.
 #
 # Usage:
 #   scripts/install.sh [--dry-run]
 set -euo pipefail
 
 REPO_ROOT="$(readlink -f "$(dirname "${BASH_SOURCE[0]}")/..")"
-
-# shellcheck source=../lib/output.sh
+# shellcheck source=lib/output.sh
 source "$REPO_ROOT/scripts/lib/output.sh"
 
-DRY_RUN=false
+WYWY_DRY_RUN=0
 case "${1:-}" in
 "") ;;
---dry-run) DRY_RUN=true ;;
+--dry-run) WYWY_DRY_RUN=1 ;;
 *)
 	error "install: unknown argument: $1"
 	exit 1
 	;;
 esac
+export WYWY_DRY_RUN
 
-if "$DRY_RUN"; then
-	header "Plan (dry run)"
-	info "uv sync --directory $REPO_ROOT --locked"
-	info "uv run --directory $REPO_ROOT ansible-galaxy collection install -r $REPO_ROOT/requirements.yaml -p $REPO_ROOT/.ansible/collections"
-	exit 0
+shopt -s nullglob
+steps=("$REPO_ROOT"/scripts/install/*.sh)
+
+if [[ "${#steps[@]}" -eq 0 ]]; then
+	error "install: no steps found under $REPO_ROOT/scripts/install"
+	exit 1
 fi
 
-header "Syncing the Ansible toolchain ($REPO_ROOT)"
-uv sync --directory "$REPO_ROOT" --locked
+header "Installing the wywy-dotfiles toolchain ($REPO_ROOT)"
+for step in "${steps[@]}"; do
+	"$step"
+done
 
-header "Installing Ansible collections ($REPO_ROOT)"
-uv run --directory "$REPO_ROOT" ansible-galaxy collection install \
-	-r "$REPO_ROOT/requirements.yaml" \
-	-p "$REPO_ROOT/.ansible/collections"
-
-info "Ansible toolchain ready ($REPO_ROOT/.venv)"
+info "Toolchain install complete"

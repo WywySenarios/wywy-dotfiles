@@ -1,0 +1,106 @@
+---
+- name: Require an absolute local bin directory
+  ansible.builtin.assert:
+    that:
+      - path_links_bin_dir.startswith('/')
+    fail_msg: "path_links_bin_dir must be absolute: {{ path_links_bin_dir }}"
+
+- name: Ensure the local bin directory exists
+  ansible.builtin.file:
+    path: "{{ path_links_bin_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Require every link source to be a regular file
+  ansible.builtin.stat:
+    path: "{{ item.src }}"
+    follow: true
+  loop: "{{ path_links_links }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: path_links_src
+
+- name: Fail closed when a link source is missing
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists
+      - item.stat.isreg
+    fail_msg: "PATH link source is not a regular file: {{ item.item.src }}"
+    quiet: true
+  loop: "{{ path_links_src.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Inspect the link destinations
+  ansible.builtin.stat:
+    path: "{{ path_links_bin_dir }}/{{ item.name }}"
+    follow: false
+  loop: "{{ path_links_links }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: path_links_dest
+
+- name: Require each destination to be absent, the expected link, or a regular file
+  ansible.builtin.assert:
+    that:
+      - not item.stat.exists
+        or (item.stat.islnk and item.stat.lnk_target == item.item.src)
+        or item.stat.isreg
+    fail_msg: >-
+      {{ path_links_bin_dir }}/{{ item.item.name }} already exists and is not
+      a regular file or the expected symlink to {{ item.item.src }}. Refusing
+      to replace it.
+    quiet: true
+  loop: "{{ path_links_dest.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Inspect the backup destinations
+  ansible.builtin.stat:
+    path: "{{ path_links_bin_dir }}/{{ item.name }}.bak"
+  loop: "{{ path_links_links }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: path_links_bak
+
+- name: Require backup destinations to be free
+  ansible.builtin.assert:
+    that:
+      - not item.stat.exists
+    fail_msg: "Backup already exists: {{ item.item.name }}.bak"
+    quiet: true
+  loop: "{{ path_links_bak.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: path_links_dest.results[loop.index0].stat.isreg
+
+- name: Back up displaced regular files
+  ansible.builtin.copy:
+    src: "{{ path_links_bin_dir }}/{{ item.item.name }}"
+    dest: "{{ path_links_bin_dir }}/{{ item.item.name }}.bak"
+    remote_src: true
+    mode: preserve
+    force: false
+  loop: "{{ path_links_dest.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.stat.exists and item.stat.isreg
+
+- name: Remove displaced regular files
+  ansible.builtin.file:
+    path: "{{ path_links_bin_dir }}/{{ item.item.name }}"
+    state: absent
+  loop: "{{ path_links_dest.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.stat.exists and item.stat.isreg
+
+- name: Create the local bin links
+  ansible.builtin.file:
+    src: "{{ item.item.src }}"
+    dest: "{{ path_links_bin_dir }}/{{ item.item.name }}"
+    state: link
+    force: false
+  loop: "{{ path_links_dest.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
