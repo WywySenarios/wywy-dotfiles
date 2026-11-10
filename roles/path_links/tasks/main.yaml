@@ -57,22 +57,23 @@
 
 - name: Inspect the backup destinations
   ansible.builtin.stat:
-    path: "{{ path_links_bin_dir }}/{{ item.name }}.bak"
-  loop: "{{ path_links_links }}"
+    path: "{{ path_links_bin_dir }}/{{ dest.item.name }}.bak"
+  loop: "{{ path_links_dest.results }}"
   loop_control:
-    label: "{{ item.name }}"
+    loop_var: dest
+    label: "{{ dest.item.name }}"
   register: path_links_bak
 
 - name: Require backup destinations to be free
   ansible.builtin.assert:
     that:
       - not item.stat.exists
-    fail_msg: "Backup already exists: {{ item.item.name }}.bak"
+    fail_msg: "Backup already exists: {{ item.dest.item.name }}.bak"
     quiet: true
   loop: "{{ path_links_bak.results }}"
   loop_control:
-    label: "{{ item.item.name }}"
-  when: path_links_dest.results[loop.index0].stat.isreg
+    label: "{{ item.dest.item.name }}"
+  when: item.dest.stat.exists and item.dest.stat.isreg
 
 - name: Back up displaced regular files
   ansible.builtin.copy:
