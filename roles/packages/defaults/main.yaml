@@ -8,6 +8,7 @@ packages_required:
   - docker-buildx-plugin
   - docker-ce
   - docker-ce-cli
+  - firefox-esr
   - openssl
   - vim
   - xorriso

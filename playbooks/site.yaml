@@ -16,6 +16,7 @@
   roles:
     - docker_repo
     - packages
+    - firefox_profile
     - docker_group
     - proxmox_repo
     - binaries

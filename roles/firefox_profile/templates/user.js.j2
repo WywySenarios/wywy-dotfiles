@@ -1,0 +1,4 @@
+// Managed by wywy-dotfiles. Local edits are overwritten on the next playbook run.
+{% for key, value in firefox_profile_prefs | dictsort %}
+user_pref({{ key | to_json }}, {{ value | to_json }});
+{% endfor %}

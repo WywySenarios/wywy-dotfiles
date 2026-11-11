@@ -2,7 +2,7 @@
 
 This repo is part of the Wywy repo line and is subject to Wywy conventions.
 
-Provisions the Wywy operator machine: apt packages, the Docker and Proxmox repositories, the pinned userland binaries (sops, helm, kubectl), and the GNOME suspend settings.
+The base dotfiles repo for Wywy machines (i.e. shared between the operator and dev machine).
 
 ## Prerequisites
 

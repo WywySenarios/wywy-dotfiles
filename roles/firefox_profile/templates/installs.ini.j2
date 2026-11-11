@@ -1,0 +1,6 @@
+{% for hash in firefox_profile_install_hashes -%}
+[{{ hash }}]
+Default={{ firefox_profile_name }}
+Locked=1
+
+{% endfor %}

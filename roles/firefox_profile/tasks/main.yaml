@@ -1,0 +1,141 @@
+---
+- name: Require a non-root operator account
+  ansible.builtin.assert:
+    that:
+      - firefox_profile_user_home not in ['', '/root']
+    fail_msg: >-
+      Refusing to write a Firefox profile for "{{ firefox_profile_user_home }}".
+      Run the playbook as the operator user, or set firefox_profile_user_home.
+    quiet: true
+
+- name: Require an absolute XDG config home
+  ansible.builtin.assert:
+    that:
+      - firefox_profile_config_home.startswith('/')
+    fail_msg: >-
+      firefox_profile_config_home must be absolute:
+      {{ firefox_profile_config_home }}
+    quiet: true
+
+- name: Inspect the legacy Firefox profile root
+  ansible.builtin.stat:
+    path: "{{ firefox_profile_legacy_ini }}"
+  register: firefox_profile_legacy_ini_stat
+
+- name: Warn when Firefox will use the legacy profile root
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: {{ firefox_profile_legacy_ini }} exists. Firefox will keep
+      using the legacy ~/.mozilla/firefox root and ignore the XDG profile at
+      {{ firefox_profile_root }} until the legacy root is removed.
+  when: firefox_profile_legacy_ini_stat.stat.exists
+
+- name: Ensure the Firefox profile root exists
+  ansible.builtin.file:
+    path: "{{ firefox_profile_root }}"
+    state: directory
+    mode: "0700"
+
+- name: Ensure the managed profile directory exists
+  ansible.builtin.file:
+    path: "{{ firefox_profile_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Inspect the managed preferences file
+  ansible.builtin.stat:
+    path: "{{ firefox_profile_user_js }}"
+  register: firefox_profile_user_js_stat
+
+- name: Read the managed preferences file
+  ansible.builtin.slurp:
+    src: "{{ firefox_profile_user_js }}"
+  register: firefox_profile_user_js_raw
+  when:
+    - firefox_profile_user_js_stat.stat.exists
+    - firefox_profile_user_js_stat.stat.size > 0
+
+- name: Require the managed preferences file to be ours
+  ansible.builtin.assert:
+    that:
+      - (firefox_profile_user_js_raw.content | b64decode) is search('Managed by wywy-dotfiles')
+    fail_msg: >-
+      {{ firefox_profile_user_js }} exists and is not managed by
+      wywy-dotfiles. Refusing to overwrite it.
+    quiet: true
+  when:
+    - firefox_profile_user_js_stat.stat.exists
+    - firefox_profile_user_js_stat.stat.size > 0
+
+- name: Write the managed profile preferences
+  ansible.builtin.template:
+    src: user.js.j2
+    dest: "{{ firefox_profile_user_js }}"
+    mode: "0600"
+
+- name: Inspect profiles.ini
+  ansible.builtin.stat:
+    path: "{{ firefox_profile_profiles_ini }}"
+  register: firefox_profile_profiles_stat
+
+- name: Read profiles.ini
+  ansible.builtin.slurp:
+    src: "{{ firefox_profile_profiles_ini }}"
+  register: firefox_profile_profiles_raw
+  when: firefox_profile_profiles_stat.stat.exists
+
+- name: Inspect installs.ini
+  ansible.builtin.stat:
+    path: "{{ firefox_profile_installs_ini }}"
+  register: firefox_profile_installs_stat
+
+- name: Read installs.ini
+  ansible.builtin.slurp:
+    src: "{{ firefox_profile_installs_ini }}"
+  register: firefox_profile_installs_raw
+  when: firefox_profile_installs_stat.stat.exists
+
+- name: Record the known install hashes
+  ansible.builtin.set_fact:
+    firefox_profile_profiles_hashes: >-
+      {{ (firefox_profile_profiles_raw | default({})).content | default('')
+         | b64decode
+         | regex_findall('(?m)^\[Install([0-9A-Fa-f]+)\]') }}
+    firefox_profile_installs_hashes: >-
+      {{ (firefox_profile_installs_raw | default({})).content | default('')
+         | b64decode
+         | regex_findall('(?m)^\[([0-9A-Fa-f]+)\]') }}
+
+- name: Combine the known install hashes
+  ansible.builtin.set_fact:
+    firefox_profile_install_hashes: >-
+      {{ (firefox_profile_profiles_hashes + firefox_profile_installs_hashes)
+         | unique }}
+
+- name: Write profiles.ini
+  ansible.builtin.template:
+    src: profiles.ini.j2
+    dest: "{{ firefox_profile_profiles_ini }}"
+    mode: "0600"
+
+- name: Write installs.ini
+  ansible.builtin.template:
+    src: installs.ini.j2
+    dest: "{{ firefox_profile_installs_ini }}"
+    mode: "0600"
+  when: firefox_profile_install_hashes | length > 0
+
+- name: Remove a stale installs.ini
+  ansible.builtin.file:
+    path: "{{ firefox_profile_installs_ini }}"
+    state: absent
+  when: firefox_profile_install_hashes | length == 0
+
+- name: Make the managed profile claimable on a fresh install
+  ansible.builtin.copy:
+    dest: "{{ firefox_profile_compatibility_ini }}"
+    content: |
+      [Compatibility]
+    mode: "0600"
+    force: false
+  when: firefox_profile_install_hashes | length == 0

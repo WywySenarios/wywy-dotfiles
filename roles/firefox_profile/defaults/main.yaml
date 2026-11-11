@@ -1,0 +1,38 @@
+---
+firefox_profile_user_home: "{{ ansible_env.HOME }}"
+firefox_profile_config_home: >-
+  {{ ansible_env.XDG_CONFIG_HOME
+     if (ansible_env.XDG_CONFIG_HOME is defined
+         and ansible_env.XDG_CONFIG_HOME.startswith('/'))
+     else (firefox_profile_user_home ~ '/.config') }}
+firefox_profile_root: "{{ firefox_profile_config_home }}/mozilla/firefox"
+firefox_profile_name: wywy
+firefox_profile_dir: "{{ firefox_profile_root }}/{{ firefox_profile_name }}"
+firefox_profile_profiles_ini: "{{ firefox_profile_root }}/profiles.ini"
+firefox_profile_installs_ini: "{{ firefox_profile_root }}/installs.ini"
+firefox_profile_user_js: "{{ firefox_profile_dir }}/user.js"
+firefox_profile_compatibility_ini: "{{ firefox_profile_dir }}/compatibility.ini"
+firefox_profile_legacy_ini: "{{ firefox_profile_user_home }}/.mozilla/firefox/profiles.ini"
+
+firefox_profile_prefs:
+  # Telemetry and data reporting.
+  datareporting.healthreport.uploadEnabled: false
+  datareporting.policy.dataSubmissionEnabled: false
+  toolkit.coverage.enabled: false
+  toolkit.telemetry.enabled: false
+  toolkit.telemetry.server: ""
+  toolkit.telemetry.unified: false
+
+  # Studies, experiments, and sponsored content.
+  app.normandy.enabled: false
+  app.shield.optoutstudies.enabled: false
+  browser.newtabpage.activity-stream.feeds.section.topstories: false
+  browser.newtabpage.activity-stream.showSponsored: false
+  browser.newtabpage.activity-stream.showSponsoredTopSites: false
+  browser.urlbar.suggest.quicksuggest.nonsponsored: false
+  browser.urlbar.suggest.quicksuggest.sponsored: false
+
+  # Bundled services and network suggestions.
+  browser.search.suggest.enabled: false
+  breakpad.reportURL: ""
+  extensions.pocket.enabled: false
