@@ -14,6 +14,10 @@ binaries_kubectl_version: "1.37.2"
 binaries_kubectl_sha256: c04487523e7aa7d1493f7808174c899db93d7a9cf57531420cd76b9bd415f8f4
 binaries_kubectl_url: "https://dl.k8s.io/release/v{{ binaries_kubectl_version }}/bin/linux/amd64/kubectl"
 
+binaries_tofu_version: "1.13.9"
+binaries_tofu_sha256: b34b327cc1ef07178207b6f2cd1f5276537d3e5b7be316500f6dac50d4c0a857
+binaries_tofu_url: "https://github.com/opentofu/opentofu/releases/download/v{{ binaries_tofu_version }}/tofu_{{ binaries_tofu_version }}_linux_amd64.tar.gz"
+
 binaries_path_links:
   - name: sops
     src: "{{ binaries_opt_root }}/sops/sops"
@@ -21,3 +25,5 @@ binaries_path_links:
     src: "{{ binaries_opt_root }}/helm/helm"
   - name: kubectl
     src: "{{ binaries_opt_root }}/kubectl/kubectl"
+  - name: tofu
+    src: "{{ binaries_opt_root }}/tofu/tofu"

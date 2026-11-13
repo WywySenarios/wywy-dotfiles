@@ -76,6 +76,30 @@
       {{ ((binaries_kubectl_installed == '')
           or (binaries_kubectl_installed is version(binaries_kubectl_version, '<'))) | bool }}
 
+- name: Probe the installed tofu version
+  ansible.builtin.command:
+    argv:
+      - "{{ binaries_opt_root }}/tofu/tofu"
+      - version
+      - -json
+  register: binaries_tofu_probe
+  changed_when: false
+  failed_when: false
+
+- name: Record the installed tofu version
+  ansible.builtin.set_fact:
+    binaries_tofu_installed: >-
+      {{ (((binaries_tofu_probe.stdout | from_json).get('terraform_version', ''))
+          | regex_replace('^v', ''))
+         if (binaries_tofu_probe.rc == 0 and binaries_tofu_probe.stdout | length > 0)
+         else '' }}
+
+- name: Decide whether tofu needs installing
+  ansible.builtin.set_fact:
+    binaries_tofu_needs_install: >-
+      {{ ((binaries_tofu_installed == '')
+          or (binaries_tofu_installed is version(binaries_tofu_version, '<'))) | bool }}
+
 - name: Create the sops staging directory
   ansible.builtin.tempfile:
     state: directory
@@ -205,6 +229,58 @@
     path: "{{ binaries_kubectl_tmp.path }}"
     state: absent
   when: binaries_kubectl_needs_install
+
+- name: Create the tofu staging directory
+  ansible.builtin.tempfile:
+    state: directory
+    path: "{{ binaries_opt_root }}"
+  register: binaries_tofu_tmp
+  when: binaries_tofu_needs_install
+
+- name: Download the OpenTofu release
+  ansible.builtin.get_url:
+    url: "{{ binaries_tofu_url }}"
+    dest: "{{ binaries_tofu_tmp.path }}/tofu.tar.gz"
+    checksum: "sha256:{{ binaries_tofu_sha256 }}"
+    mode: "0644"
+  when: binaries_tofu_needs_install
+
+- name: Create the OpenTofu extraction directory
+  ansible.builtin.file:
+    path: "{{ binaries_tofu_tmp.path }}/extract"
+    state: directory
+    mode: "0755"
+  when: binaries_tofu_needs_install
+
+- name: Extract the OpenTofu release
+  ansible.builtin.unarchive:
+    src: "{{ binaries_tofu_tmp.path }}/tofu.tar.gz"
+    dest: "{{ binaries_tofu_tmp.path }}/extract"
+    remote_src: true
+  when: binaries_tofu_needs_install
+
+- name: Ensure the tofu tool root exists
+  ansible.builtin.file:
+    path: "{{ binaries_opt_root }}/tofu"
+    state: directory
+    mode: "0755"
+  when: binaries_tofu_needs_install
+
+- name: Install the tofu binary atomically
+  ansible.builtin.command:
+    argv:
+      - mv
+      - -f
+      - "{{ binaries_tofu_tmp.path }}/extract/tofu"
+      - "{{ binaries_opt_root }}/tofu/tofu"
+  when: binaries_tofu_needs_install
+  changed_when: true
+
+- name: Remove the tofu staging directory
+  ansible.builtin.file:
+    path: "{{ binaries_tofu_tmp.path }}"
+    state: absent
+  when: binaries_tofu_needs_install
 
 - name: Link the standalone binaries into ~/.local/bin
   ansible.builtin.include_role:

@@ -79,13 +79,14 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
 	FAILED=1
 fi
 
-for name in sops helm kubectl age curl openssl vim xorriso docker htpasswd; do
+for name in sops helm kubectl tofu age curl openssl vim xorriso docker htpasswd; do
 	check_command "$name"
 done
 
 sops_threshold="$(read_default binaries_sops_version "$BINARIES_DEFAULTS")"
 helm_threshold="$(read_default binaries_helm_version "$BINARIES_DEFAULTS")"
 kubectl_threshold="$(read_default binaries_kubectl_version "$BINARIES_DEFAULTS")"
+tofu_threshold="$(read_default binaries_tofu_version "$BINARIES_DEFAULTS")"
 
 if sops_raw="$(sops --version)"; then
 	sops_have="$(strip_version "$(printf '%s\n' "$sops_raw" | awk 'NR == 1 { print $2 }')")"
@@ -107,6 +108,13 @@ else
 	kubectl_have=""
 fi
 check_version kubectl "$kubectl_have" "$kubectl_threshold"
+
+if tofu_raw="$(tofu version -json)"; then
+	tofu_have="$(strip_version "$(printf '%s\n' "$tofu_raw" | sed -n 's/.*"terraform_version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')")"
+else
+	tofu_have=""
+fi
+check_version tofu "$tofu_have" "$tofu_threshold"
 
 if [[ "$FAILED" -ne 0 ]]; then
 	error "verification failed"
